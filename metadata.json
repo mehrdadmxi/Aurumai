@@ -1,0 +1,8 @@
+{
+  "name": "Aurum AI",
+  "description": "Professional AI-Powered XAUUSD Multi-Timeframe Trading Analysis Platform using Gemini Vision, GoldAPI, and TradingView intelligence.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

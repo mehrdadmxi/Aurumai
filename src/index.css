@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --aurum-bg: #060608;
+    --aurum-surface: #0D0E12;
+    --aurum-surface-elevated: #13151B;
+    --aurum-border: rgba(212, 175, 55, 0.16);
+    --aurum-gold: #D4AF37;
+    --aurum-champagne: #F3E5AB;
+    --aurum-text: #F5F2EB;
+    --aurum-muted: #9A9891;
+  }
+
+  html {
+    background-color: #060608;
+    color: #F5F2EB;
+    scroll-behavior: smooth;
+  }
+
+  html[dir="rtl"] body {
+    font-family: "Vazirmatn", "Plus Jakarta Sans", system-ui, sans-serif;
+  }
+
+  html[dir="ltr"] body {
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  }
+
+  .font-display-serif {
+    font-family: "Cormorant Garamond", "Vazirmatn", Georgia, serif;
+  }
+
+  .font-mono-num {
+    font-family: "JetBrains Mono", monospace;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.aurum-glass {
+  background: linear-gradient(155deg, rgba(20, 21, 27, 0.88) 0%, rgba(10, 11, 15, 0.94) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.16);
+}
+
+.aurum-glass-strong {
+  background: linear-gradient(160deg, rgba(26, 24, 20, 0.9) 0%, rgba(11, 12, 16, 0.96) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+}
+
+.aurum-gold-gradient-text {
+  background: linear-gradient(135deg, #F3E5AB 0%, #D4AF37 55%, #AA8220 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.aurum-gold-btn {
+  background: linear-gradient(135deg, #E5C158 0%, #D4AF37 50%, #B89128 100%);
+  color: #070709;
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), filter 180ms ease;
+}
+
+.aurum-gold-btn:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.aurum-gold-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Print / PDF Export formatting supporting both Persian RTL and English LTR */
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+  body {
+    background: #ffffff !important;
+    color: #111827 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-report-surface {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: #d1d5db !important;
+  }
+  .print-report-surface * {
+    color: #111827 !important;
+    border-color: #e5e7eb !important;
+  }
+}

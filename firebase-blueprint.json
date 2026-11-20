@@ -1,0 +1,175 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated user account profile, subscription tier, and UI language preference.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the account owner.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User display name.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Verified account email address.",
+          "minLength": 3,
+          "maxLength": 200
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Optional profile avatar URL.",
+          "maxLength": 500
+        },
+        "tier": {
+          "type": "string",
+          "enum": ["FREE", "VIP"],
+          "description": "Subscription tier (only admins may grant VIP)."
+        },
+        "language": {
+          "type": "string",
+          "enum": ["fa", "en"],
+          "description": "Preferred UI language."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when profile was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when profile was last updated."
+        }
+      },
+      "required": ["uid", "displayName", "email", "tier", "language", "createdAt", "updatedAt"]
+    },
+    "AnalysisRecord": {
+      "title": "AnalysisRecord",
+      "description": "Persisted multi-timeframe XAUUSD AI analysis report owned by an authenticated user.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique report identifier.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "symbol": {
+          "type": "string",
+          "enum": ["XAUUSD"],
+          "description": "Analyzed instrument symbol."
+        },
+        "language": {
+          "type": "string",
+          "enum": ["fa", "en"],
+          "description": "Language of the generated report."
+        },
+        "decision": {
+          "type": "string",
+          "enum": ["BUY", "SELL", "NO TRADE"],
+          "description": "Trading signal decision."
+        },
+        "signalStatus": {
+          "type": "string",
+          "description": "Signal tracking status.",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "analysisStatus": {
+          "type": "string",
+          "enum": ["completed", "rejected", "failed"],
+          "description": "Pipeline completion status."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO timestamp of report generation.",
+          "minLength": 10,
+          "maxLength": 40
+        },
+        "serverCreatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp enforced on creation."
+        },
+        "summary": {
+          "type": "string",
+          "description": "Concise decision summary text.",
+          "maxLength": 4000
+        },
+        "reportPayload": {
+          "type": "object",
+          "description": "Structured multi-timeframe analysis report map."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "symbol",
+        "language",
+        "decision",
+        "signalStatus",
+        "analysisStatus",
+        "createdAt",
+        "serverCreatedAt",
+        "reportPayload"
+      ]
+    },
+    "AdminMarker": {
+      "title": "AdminMarker",
+      "description": "Server-managed administrator role marker document.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin"]
+        }
+      },
+      "required": ["uid", "role"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Private user profile documents (strictly owner or verified admin access)."
+    },
+    "/users/{userId}/analyses/{analysisId}": {
+      "schema": {
+        "$ref": "#/entities/AnalysisRecord"
+      },
+      "description": "Per-user persisted XAUUSD AI analysis reports synced across devices."
+    },
+    "/admins/{adminId}": {
+      "schema": {
+        "$ref": "#/entities/AdminMarker"
+      },
+      "description": "Trusted administrator lookup documents."
+    }
+  }
+}

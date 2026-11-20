@@ -1,0 +1,1231 @@
+# MASTER PROMPT: Build Aurum AI
+## Professional AI-Powered XAUUSD Trading Analysis Platform
+
+You are a senior full-stack developer, AI engineer, quantitative trading analyst, UI/UX designer, and security engineer.
+
+Build a complete, functional, production-oriented web application named **Aurum AI**. This platform specializes in professional technical analysis of Gold (XAUUSD) using artificial intelligence and three TradingView chart screenshots.
+
+Do not create a static landing page or a visual prototype. Build a working application with real backend logic, API integrations, image processing, AI analysis, user flows, and responsive interfaces.
+
+Do not stop after creating the homepage. Implement all pages and features described below.
+
+---
+
+# 1. PROJECT IDENTITY
+
+Brand name: Aurum AI
+
+Main purpose:
+Users upload three XAUUSD chart screenshots from different timeframes. The AI examines all three charts together, checks the latest available gold price, evaluates market structure and technical indicators, and generates a professional trading analysis.
+
+Supported languages:
+- Persian (default)
+- English
+
+Language requirements:
+- Full Persian RTL layout.
+- Full English LTR layout.
+- Language switcher in the navigation.
+- Translate all buttons, menus, errors, notifications, reports, and analysis results.
+- Preserve correct financial terminology in both languages.
+
+Main slogan:
+
+Trade Smarter With AI.
+
+Secondary slogan:
+
+Professional Gold Analysis. Three Timeframes. One Intelligent Decision.
+
+Brand identity:
+- Premium financial technology platform.
+- Black and gold color palette.
+- Elegant, modern, cinematic interface.
+- Professional trading terminal experience.
+
+---
+
+# 2. VISUAL DESIGN AND USER EXPERIENCE
+
+Use https://motionsites.ai/ as a visual inspiration reference.
+
+Do not copy the website. Create an original design inspired by its modern visual quality, motion, depth, and interactive elements.
+
+Design specifications:
+
+- Main background: deep black.
+- Primary accent: metallic gold.
+- Secondary accent: warm champagne gold.
+- Glassmorphism cards.
+- Subtle gold gradients.
+- Smooth transitions.
+- 3D visual elements.
+- Floating gold particles.
+- Animated charts and market indicators.
+- Soft glowing borders.
+- Professional typography.
+- High-quality loading animations.
+
+Hero section:
+
+Create a large, visually impressive 3D golden sphere floating in the center of the hero section.
+
+The sphere should have:
+- Realistic metallic gold material.
+- Subtle rotation.
+- Soft reflections.
+- Floating animation.
+- Dynamic lighting.
+- Depth and cinematic appearance.
+
+Place the following text beside or below the sphere:
+
+Aurum AI
+
+Trade Smarter With AI.
+
+Upload your Gold charts. Let artificial intelligence analyze the market and identify high-quality trading opportunities.
+
+Primary button:
+Start AI Analysis
+
+Secondary button:
+Explore Platform
+
+The design must remain fast and responsive. Avoid excessive animations that slow down the application.
+
+---
+
+# 3. TECHNICAL ARCHITECTURE
+
+Build the application using the full-stack capabilities available in Google AI Studio Build.
+
+Preferred architecture:
+
+Frontend:
+- React
+- TypeScript
+- Modern component-based architecture
+- Responsive CSS
+- Professional chart and dashboard components
+
+Backend:
+- Node.js
+- TypeScript
+- Secure server-side API routes
+- Server-side AI requests
+- Server-side external API requests
+
+AI:
+- Gemini Vision model.
+- Use the strongest available Gemini model with image understanding.
+- Support multiple chart images in one analysis request.
+
+Storage:
+- Use browser Local Storage for basic demo preferences and temporary history if no persistent database is configured.
+- Do not present Local Storage as secure cloud storage.
+- Structure the application so Firebase Firestore and Firebase Authentication can be added later.
+- Do not require Supabase.
+- Do not require n8n.
+- Do not require paid external automation platforms.
+
+Important:
+Use actual working functionality wherever possible.
+
+Never create fake API responses and present them as real market data.
+
+If an external integration is unavailable, show a clear connection status and a useful error message.
+
+---
+
+# 4. API CONFIGURATION AND EXISTING CREDENTIALS
+
+Use the existing API credentials already supplied by the project owner.
+
+Do not request new API keys.
+Do not replace the existing API providers.
+Do not hardcode secret values in frontend files.
+Do not expose tokens in browser requests, logs, HTML, or client-side JavaScript.
+
+Configure these server-side environment secrets:
+
+APIFY_API_TOKEN
+Use the existing Apify token.
+
+GOLDAPI_API_KEY
+Use the existing GoldAPI token.
+
+GEMINI_API_KEY
+Use the Gemini credential configured for this Google AI Studio project.
+
+NEWS_API_KEY
+Optional. Leave unconfigured until a news provider is selected.
+
+Important implementation rules:
+
+- Read secrets using process.env.
+- Make external API requests from the backend.
+- Never send API tokens to the frontend.
+- Never print secret values in console logs.
+- Mask API credentials in the admin panel.
+- Show whether each API is connected, disconnected, or experiencing an error.
+- Provide useful error handling for expired tokens, quota limits, network failures, and invalid responses.
+
+If the Google AI Studio environment provides built-in Gemini authentication, use its supported authentication mechanism instead of exposing a key in client-side code.
+
+---
+
+# 5. GOLDAPI LIVE GOLD PRICE INTEGRATION
+
+Connect the existing GoldAPI service.
+
+Endpoint:
+
+GET https://www.goldapi.io/api/XAU/USD
+
+Required header:
+
+x-access-token: process.env.GOLDAPI_API_KEY
+
+Retrieve the available market fields, including:
+
+- Gold price in USD.
+- Previous close.
+- Daily change.
+- Daily percentage change.
+- High price.
+- Low price.
+- Timestamp.
+- Other useful fields returned by the provider.
+
+Build a live market widget.
+
+Display:
+
+- XAUUSD current reference price.
+- Daily percentage change.
+- Daily high.
+- Daily low.
+- Last update time.
+- Data source.
+- API connection status.
+
+Important:
+GoldAPI spot price is a reference market price. Do not describe it as the exact executable price of every broker.
+
+Do not generate fake prices if GoldAPI fails.
+
+When the service is unavailable:
+- Show the last valid cached price if available.
+- Clearly label cached data.
+- Display the last update timestamp.
+- Never label stale data as live.
+
+Implement:
+- Configurable refresh interval.
+- Server-side caching.
+- Request throttling.
+- Error handling.
+- API quota awareness.
+
+Do not send unnecessary requests to GoldAPI.
+
+---
+
+# 6. APIFY AND TRADINGVIEW DATA INTEGRATION
+
+Use the existing Apify API token.
+
+Existing Actor ID:
+
+hOfycUMuUpaFZvG7a
+
+The project owner previously supplied an uploaded JSON file containing TradingView chart URLs.
+
+That file contains 26 URLs:
+- 13 XAUUSD chart URLs.
+- 13 BTCUSD chart URLs.
+
+For this project, use only the XAUUSD URLs.
+
+Ignore all BTCUSD URLs.
+
+The XAUUSD sources include:
+
+- TVC:GOLD
+- FX_IDC:XAUUSD
+- STONEXTRADING:XAUUSD
+- SKILLING:XAUUSD
+- BLACKBULL:XAUUSD
+- EIGHTCAP:XAUUSD
+- SAXO:XAUUSD
+- EASYMARKETS:XAUUSD
+- PHILLIPNOVA:XAUUSD
+- FOREXCOM:XAUUSD
+- OANDA:XAUUSD
+- FX:XAUUSD
+- PEPPERSTONE:XAUUSD
+
+Important implementation requirements:
+
+1. Inspect the actual Apify Actor metadata and input schema before calling the Actor.
+2. Do not invent Actor input fields.
+3. Use the existing Actor ID.
+4. Authenticate with APIFY_API_TOKEN on the backend.
+5. Handle Actor execution status and timeout.
+6. Parse returned data according to the real Actor output schema.
+7. Handle empty results and API failures.
+8. Keep the application operational even if Apify is unavailable.
+
+Do not assume that a TradingView URL contains historical candle data.
+
+The uploaded JSON file contains chart URLs, not guaranteed OHLC market data.
+
+Use Apify only as a supplementary data source. The main analysis workflow must still work with the three user-uploaded screenshots, GoldAPI reference price, and Gemini Vision.
+
+If the uploaded JSON file is not available in the current project, create an admin configuration section where the owner can upload the JSON file.
+
+---
+
+# 7. MAIN AI ANALYSIS SYSTEM
+
+This is the core feature of Aurum AI.
+
+Build a dedicated AI Analysis page.
+
+The user must upload exactly three XAUUSD chart screenshots:
+
+Chart 1:
+1H timeframe. Main market direction.
+
+Chart 2:
+15M timeframe. Market structure and liquidity.
+
+Chart 3:
+5M timeframe. Entry confirmation.
+
+Create three separate upload cards.
+
+Each card must include:
+
+- Timeframe label.
+- Upload button.
+- Drag-and-drop support.
+- Image preview.
+- Replace image button.
+- Remove image button.
+- Upload status.
+- Validation status.
+
+Supported formats:
+PNG, JPG, JPEG, WEBP.
+
+Maximum image size:
+10 MB per image.
+
+Before analysis, require all three charts.
+
+The user must manually confirm the timeframe assigned to each image.
+
+Do not silently assume that an image belongs to a particular timeframe.
+
+Image validation:
+
+Before sending images to Gemini, inspect:
+
+- Whether the image shows a financial chart.
+- Whether the symbol is XAUUSD or Gold.
+- Whether the timeframe matches the selected upload slot.
+- Whether the chart is readable.
+- Whether the price axis is visible.
+- Whether the time axis is visible.
+- Whether the screenshot contains indicators.
+- Whether the screenshot is old or appears incomplete.
+
+If a chart is unreadable, ask the user to upload a clearer image.
+
+If the symbol is not XAUUSD, reject the analysis or request confirmation.
+
+If the timeframe is uncertain, request user confirmation.
+
+Do not invent missing information.
+
+---
+
+# 8. MULTI-TIMEFRAME ANALYSIS LOGIC
+
+Analyze the three charts together.
+
+Do not analyze each chart independently and simply combine three unrelated conclusions.
+
+Use the following hierarchy:
+
+1H:
+Determine the main market trend.
+
+Analyze:
+- Overall market direction.
+- Major swing highs and lows.
+- Main support and resistance.
+- Higher-timeframe structure.
+- Major supply and demand zones.
+- Important liquidity areas.
+- Trend strength.
+
+15M:
+Analyze market structure.
+
+Analyze:
+- BOS.
+- CHoCH.
+- MSS.
+- Liquidity sweeps.
+- Buy-side liquidity.
+- Sell-side liquidity.
+- Equal highs.
+- Equal lows.
+- Fair Value Gaps.
+- Order Blocks.
+- Breaker Blocks.
+- Mitigation zones.
+- Premium and discount zones.
+- Important intraday support and resistance.
+
+5M:
+Find the potential entry.
+
+Analyze:
+- Entry confirmation.
+- Short-term structure.
+- BOS and CHoCH.
+- FVG.
+- Order Block.
+- Liquidity sweep.
+- Rejection candles.
+- Engulfing patterns.
+- Entry zone.
+- Stop-loss location.
+- Take-profit levels.
+
+The final trading decision must respect the 1H trend, 15M structure, and 5M entry confirmation.
+
+Do not force a BUY or SELL signal when the timeframes conflict.
+
+---
+
+# 9. TECHNICAL ANALYSIS METHODS
+
+Use a combination of the following methods when the required information is visible.
+
+Price Action:
+- Market structure.
+- Higher highs.
+- Higher lows.
+- Lower highs.
+- Lower lows.
+- Breakouts.
+- Rejections.
+- Retests.
+- Consolidation.
+
+ICT / Smart Money Concepts:
+- BOS.
+- CHoCH.
+- MSS.
+- FVG.
+- Inverse FVG.
+- Order Block.
+- Breaker Block.
+- Mitigation Block.
+- Liquidity Sweep.
+- BSL.
+- SSL.
+- Equal Highs.
+- Equal Lows.
+- Premium.
+- Discount.
+- OTE.
+- Displacement.
+
+Indicators:
+- EMA 50.
+- EMA 200.
+- RSI.
+- MACD.
+- Moving average crossovers.
+- Divergences.
+
+Additional tools:
+- Fibonacci retracement.
+- Support and resistance.
+- Supply and demand.
+- Trendlines.
+- Candlestick patterns.
+- Momentum analysis.
+
+Important:
+Only analyze indicators that are visible or supported by reliable data.
+
+If RSI or MACD is not visible, do not invent its value.
+
+If volume is not visible, mark volume analysis as unavailable.
+
+Never claim that a specific indicator confirms a trade without evidence.
+
+---
+
+# 10. FUNDAMENTAL AND NEWS ANALYSIS
+
+Create a separate news integration layer.
+
+The system should support relevant economic events affecting Gold.
+
+Monitor news related to:
+
+- Federal Reserve.
+- FOMC.
+- US interest rates.
+- CPI.
+- PCE.
+- NFP.
+- Unemployment.
+- US Dollar Index.
+- US Treasury yields.
+- Geopolitical events.
+- Central bank decisions.
+- Major economic announcements.
+
+The news module must support an external provider adapter.
+
+NEWS_API_KEY is optional until a provider is configured.
+
+Do not invent news headlines or economic events.
+
+For every news item, display:
+- Headline.
+- Source.
+- Publication time.
+- Event category.
+- Potential impact on Gold.
+- Whether the information is delayed.
+
+If no news provider is configured, clearly show:
+
+News data is currently unavailable.
+
+Do not present old news as breaking news.
+
+During analysis, consider major upcoming economic events when reliable data is available.
+
+If a high-impact event is imminent, include a market-risk notice in the analysis.
+
+---
+
+# 11. SIGNAL GENERATION ENGINE
+
+After analyzing all available data, return exactly one primary decision:
+
+BUY
+SELL
+NO TRADE
+
+Never force a signal.
+
+NO TRADE is a valid and important result.
+
+Signal requirements:
+
+- Multi-timeframe confirmation.
+- Clear market structure.
+- Confirmed entry conditions.
+- Logical stop-loss.
+- Realistic take-profit targets.
+- Minimum Risk-to-Reward ratio of 1:1.5.
+- Current price consistency.
+- No unresolved major data conflict.
+
+Do not promise an 85% win rate or any guaranteed performance.
+
+A high analysis score must never be presented as a guaranteed probability of success.
+
+BUY conditions:
+- Bullish setup supported by structure.
+- Entry confirmation on 5M.
+- Logical stop-loss below the entry zone.
+- Take-profit levels above the entry.
+- Minimum RR of 1:1.5.
+
+SELL conditions:
+- Bearish setup supported by structure.
+- Entry confirmation on 5M.
+- Logical stop-loss above the entry zone.
+- Take-profit levels below the entry.
+- Minimum RR of 1:1.5.
+
+NO TRADE conditions:
+- Conflicting timeframes.
+- Unclear market structure.
+- No valid 5M entry confirmation.
+- Poor Risk-to-Reward ratio.
+- Missing or unreadable charts.
+- Stale screenshots.
+- Large difference between screenshot price and current reference price.
+- Entry already passed.
+- Insufficient data.
+- Unusually high event risk.
+
+---
+
+# 12. ENTRY, STOP LOSS AND TAKE PROFIT
+
+For valid signals, generate:
+
+- Entry price or entry zone.
+- Stop Loss.
+- Take Profit 1.
+- Take Profit 2.
+- Take Profit 3.
+- Risk-to-Reward ratio.
+- Setup invalidation level.
+- Entry timeframe.
+- Signal direction.
+
+All prices must be grounded in the chart and available market data.
+
+Do not invent exact prices when the chart does not support accurate extraction.
+
+If the chart price is unclear, provide a clearly labeled approximate zone or return NO TRADE.
+
+Check the current GoldAPI reference price before publishing the signal.
+
+Compare the reference price with the latest chart price.
+
+If the screenshot is old or the market has already moved beyond the proposed entry:
+- Do not publish an outdated entry as an active signal.
+- Return NO TRADE or request fresh screenshots.
+- Explain why the setup is no longer valid.
+
+Clearly distinguish between:
+- Planned entry.
+- Current reference price.
+- Executable broker price.
+
+Do not claim that a trade has been executed.
+
+---
+
+# 13. ANALYSIS SCORING SYSTEM
+
+Create a technical quality score from 0 to 10.
+
+Evaluate:
+
+| Category | Score |
+|---|---|
+| Price Action | 0-10 |
+| Market Structure | 0-10 |
+| Volume | 0-10 or N/A |
+| Candlestick Confirmation | 0-10 |
+| Multi-Timeframe Alignment | 0-10 |
+| Fundamental Context | 0-10 or N/A |
+
+Calculate an overall score using available categories only.
+
+Do not treat N/A as zero.
+
+Explain why each score was assigned.
+
+Important:
+This score represents the quality of available technical evidence. It is not a probability of winning.
+
+---
+
+# 14. AI ANALYSIS RESULT PAGE
+
+Create a premium trading report interface.
+
+At the top, display:
+
+- XAUUSD.
+- Analysis date and time.
+- Analysis status.
+- Current GoldAPI reference price.
+- Data freshness.
+- Final trading decision.
+
+For BUY:
+
+Display a green BUY indicator.
+
+For SELL:
+
+Display a red SELL indicator.
+
+For NO TRADE:
+
+Display a neutral warning indicator.
+
+Create separate result cards for:
+
+1. Market Direction.
+2. 1H Analysis.
+3. 15M Analysis.
+4. 5M Analysis.
+5. Entry.
+6. Stop Loss.
+7. Take Profit 1.
+8. Take Profit 2.
+9. Take Profit 3.
+10. Risk-to-Reward.
+11. Technical Score.
+12. Fundamental Context.
+13. Setup Invalidation.
+
+Add a detailed explanation section.
+
+The report must explain:
+- Why the system selected BUY, SELL, or NO TRADE.
+- Which technical confirmations support the decision.
+- Which timeframes agree or disagree.
+- What conditions invalidate the setup.
+- Whether the current reference price is still near the proposed entry.
+
+Add buttons:
+
+- Copy Analysis.
+- Download PDF.
+- Analyze New Charts.
+
+The PDF report must support Persian and English text correctly.
+
+---
+
+# 15. DASHBOARD
+
+Create a professional user dashboard.
+
+Show:
+
+- Welcome message.
+- Current Gold price.
+- Daily Gold movement.
+- Number of analyses completed.
+- Remaining daily analyses.
+- VIP status.
+- Recent analysis history.
+- Latest signal.
+- Market overview.
+- Quick access to AI Analysis.
+
+Include a responsive navigation menu.
+
+Desktop navigation:
+- Dashboard.
+- AI Analysis.
+- Trading Signals.
+- Market.
+- Economic News.
+- Analysis History.
+- Pricing.
+- Profile.
+
+Mobile navigation:
+Use a compact bottom navigation bar.
+
+---
+
+# 16. TRADING SIGNALS PAGE
+
+Create a dedicated signals page.
+
+Display available analysis results in a structured list.
+
+Each signal should show:
+
+- Symbol.
+- BUY / SELL / NO TRADE.
+- Entry.
+- Stop Loss.
+- Take Profit levels.
+- RR.
+- Analysis timestamp.
+- Signal status.
+- Technical score.
+
+Possible statuses:
+
+- ACTIVE.
+- ENTRY REACHED.
+- TP1 HIT.
+- TP2 HIT.
+- TP3 HIT.
+- STOP LOSS HIT.
+- EXPIRED.
+- INVALIDATED.
+- UNVERIFIED.
+
+Important:
+Do not claim that a target or stop-loss has been reached unless reliable price data supports the claim.
+
+If historical price monitoring is unavailable, use UNVERIFIED.
+
+Do not create fake signal history.
+
+---
+
+# 17. ANALYSIS HISTORY
+
+Create an analysis history page.
+
+Store available analysis records with:
+
+- Date.
+- Time.
+- Decision.
+- Entry.
+- Stop Loss.
+- Take Profit.
+- RR.
+- Technical score.
+- Analysis summary.
+
+Provide filters:
+- All.
+- BUY.
+- SELL.
+- NO TRADE.
+
+Allow users to open previous reports.
+
+In the initial version, use Local Storage only for demo history if no database exists.
+
+Clearly distinguish local browser history from secure cloud history.
+
+Do not promise cross-device synchronization without persistent backend storage.
+
+---
+
+# 18. FREE AND VIP SUBSCRIPTION SYSTEM
+
+Create two subscription levels.
+
+FREE:
+
+- Limited daily AI analyses.
+- Basic technical report.
+- Basic market price display.
+- Limited history.
+- Basic news information.
+
+VIP:
+
+- Higher daily analysis quota.
+- Advanced ICT and SMC analysis.
+- Detailed multi-timeframe report.
+- Extended analysis history.
+- Advanced signal details.
+- Full report export.
+- Additional market insights.
+- Signal monitoring when reliable data is available.
+
+Build the interface for subscription management.
+
+Important:
+Enforce user limits on the backend wherever authentication and persistent storage are configured.
+
+Do not rely on frontend-only restrictions for real subscription security.
+
+If Firebase or another persistent database is not configured:
+- Clearly label subscription functionality as DEMO.
+- Allow manual VIP activation through the admin interface for demonstration.
+- Do not claim payment has succeeded.
+- Do not create fake payment transactions.
+- Keep the architecture ready for a future payment provider.
+
+Do not integrate a new payment provider without explicit configuration.
+
+---
+
+# 19. AUTHENTICATION AND USER PROFILE
+
+Build:
+
+- Sign-up interface.
+- Login interface.
+- Logout.
+- User profile.
+- Language preference.
+- Subscription status.
+- Analysis quota display.
+
+Use Firebase Authentication only if the project is configured with valid Firebase credentials.
+
+If Firebase is not configured:
+- Provide a clearly labeled local demo mode.
+- Do not present local demo login as secure authentication.
+- Do not claim that user data is protected by server-side account authentication.
+
+Prepare the code architecture for Firebase integration later.
+
+---
+
+# 20. ADMIN PANEL
+
+Create a separate admin dashboard.
+
+Admin features:
+
+1. Overview:
+   - Total registered users, when persistent authentication is configured.
+   - Active VIP users, when persistent subscription data exists.
+   - Total analyses.
+   - Successful analyses.
+   - Failed analyses.
+   - API connection status.
+
+2. User management:
+   - View users when persistent user data exists.
+   - View subscription status.
+   - Activate or deactivate demo VIP.
+   - View analysis usage.
+
+3. API management:
+   - GoldAPI status.
+   - Apify status.
+   - Gemini status.
+   - News API status.
+   - API error information.
+   - Last successful request.
+
+4. Analysis management:
+   - Recent analyses.
+   - Failed analyses.
+   - Analysis errors.
+
+5. System configuration:
+   - Free analysis quota.
+   - VIP analysis quota.
+   - Cache refresh interval.
+   - Supported languages.
+   - Feature availability.
+
+Security:
+- Protect admin routes on the backend.
+- Never expose admin credentials in frontend code.
+- Never display full API keys.
+- Mask secret values.
+- Do not allow ordinary users to modify system settings.
+
+If persistent authentication is unavailable, clearly label the admin panel as a development/demo feature.
+
+---
+
+# 21. MARKET OVERVIEW PAGE
+
+Create a dedicated Gold market page.
+
+Display:
+
+- XAUUSD reference price.
+- Daily change.
+- Daily percentage change.
+- High and low.
+- Last update.
+- Market data source.
+- API status.
+
+Add sections for:
+
+- Market trend.
+- Important technical levels.
+- Market sentiment when reliable data is available.
+- Upcoming economic events when a news provider is configured.
+
+Do not display fabricated live market data.
+
+---
+
+# 22. LOADING AND ERROR STATES
+
+Build professional loading states.
+
+During analysis, display a multi-stage progress interface:
+
+Stage 1:
+Validating uploaded charts.
+
+Stage 2:
+Reading the 1H chart.
+
+Stage 3:
+Analyzing the 15M structure.
+
+Stage 4:
+Finding the 5M entry setup.
+
+Stage 5:
+Checking the live Gold reference price.
+
+Stage 6:
+Evaluating technical confirmations.
+
+Stage 7:
+Generating the final report.
+
+Show real progress based on backend execution stages.
+
+Do not simulate completed AI analysis while the backend is still working.
+
+Create useful error messages for:
+- Missing images.
+- Invalid image formats.
+- Large images.
+- Unsupported symbols.
+- Unreadable charts.
+- Gemini errors.
+- GoldAPI errors.
+- Apify errors.
+- Network failures.
+- Quota limits.
+- Authentication failures.
+
+---
+
+# 23. SECURITY AND RELIABILITY
+
+Implement:
+
+- Server-side API calls.
+- Secret management through environment variables.
+- Input validation.
+- Image size validation.
+- Request throttling.
+- Error handling.
+- Safe logging.
+- API response validation.
+- Protection against accidental secret exposure.
+- Secure admin authorization when authentication is configured.
+
+Never trust frontend subscription status.
+
+Never trust user-submitted API responses.
+
+Never expose private credentials in client-side bundles.
+
+Do not invent successful API responses.
+
+Do not fabricate historical price data.
+
+Do not fabricate technical indicators.
+
+Do not fabricate news.
+
+---
+
+# 24. REQUIRED BACKEND WORKFLOW
+
+When the user submits three images, execute this workflow:
+
+STEP 1:
+Validate all three images.
+
+STEP 2:
+Confirm the selected timeframes:
+1H, 15M, 5M.
+
+STEP 3:
+Retrieve the latest available GoldAPI reference price.
+
+STEP 4:
+Optionally retrieve supplementary TradingView information through the existing Apify Actor, after inspecting its real input schema.
+
+STEP 5:
+Send all three images together to Gemini Vision.
+
+STEP 6:
+Ask Gemini to analyze the charts using the multi-timeframe rules described above.
+
+STEP 7:
+Compare the AI-extracted chart price with the latest GoldAPI reference price.
+
+STEP 8:
+Check timeframe alignment.
+
+STEP 9:
+Evaluate entry conditions and Risk-to-Reward.
+
+STEP 10:
+Return BUY, SELL, or NO TRADE.
+
+STEP 11:
+Generate the complete analysis report.
+
+STEP 12:
+Save the report in available history storage.
+
+If GoldAPI is unavailable, clearly state that the live reference price check failed. Do not silently replace live data with an invented value.
+
+If Apify fails, continue with the screenshot-based analysis.
+
+If Gemini fails, return a clear error. Do not generate a fake AI report.
+
+---
+
+# 25. GEMINI ANALYSIS INSTRUCTION
+
+Use the following analysis behavior as the core system instruction for Gemini.
+
+You are a professional XAUUSD technical analysis engine.
+
+Your job is to analyze three chart screenshots together.
+
+You must act objectively and conservatively.
+
+Your primary goal is to identify valid trading setups and avoid low-quality trades.
+
+You must follow these rules:
+
+1. Analyze 1H for the main trend.
+2. Analyze 15M for market structure and liquidity.
+3. Analyze 5M for entry confirmation.
+4. Use ICT, SMC, and Price Action concepts when supported by visible evidence.
+5. Identify BOS, CHoCH, MSS, FVG, OB, liquidity sweeps, BSL, SSL, equal highs, and equal lows when visible.
+6. Check the relationship between all three timeframes.
+7. Check the current GoldAPI reference price.
+8. Reject outdated or invalid entry levels.
+9. Require minimum RR of 1:1.5.
+10. Never invent exact prices or indicators.
+11. Never invent volume data.
+12. Never invent news.
+13. Never force a trading signal.
+14. Return NO TRADE whenever evidence is insufficient.
+15. Never guarantee profit or a fixed win rate.
+
+Your final answer must use the following structure:
+
+A. FINAL DECISION
+
+BUY / SELL / NO TRADE
+
+B. MARKET INFORMATION
+
+- Symbol:
+- Current GoldAPI reference price:
+- Analysis timestamp:
+- Screenshot status:
+- Data freshness:
+
+C. MULTI-TIMEFRAME ANALYSIS
+
+1H:
+- Main trend:
+- Market structure:
+- Important levels:
+- Technical observations:
+
+15M:
+- Market structure:
+- Liquidity:
+- BOS / CHoCH:
+- FVG / OB:
+- Important levels:
+
+5M:
+- Entry confirmation:
+- Candlestick confirmation:
+- Entry zone:
+- Setup validity:
+
+D. TRADING PLAN
+
+- Direction:
+- Entry:
+- Stop Loss:
+- Take Profit 1:
+- Take Profit 2:
+- Take Profit 3:
+- Risk-to-Reward:
+- Entry timeframe:
+- Invalidation condition:
+
+E. TECHNICAL SCORES
+
+- Price Action:
+- Market Structure:
+- Volume:
+- Candlestick:
+- Multi-Timeframe:
+- Fundamental:
+
+Use N/A when reliable evidence is unavailable.
+
+F. FUNDAMENTAL CONTEXT
+
+- Relevant economic events:
+- News impact:
+- USD context:
+- Risk conditions:
+
+If news information is unavailable, say so.
+
+G. FINAL EXPLANATION
+
+Explain the reason for the decision in clear language.
+
+H. RISK MANAGEMENT
+
+Explain what would invalidate the setup and whether the proposed entry is still valid at the current reference price.
+
+---
+
+# 26. FINAL BUILD REQUIREMENTS
+
+Before finishing:
+
+- Make sure every page works.
+- Make sure navigation works.
+- Make sure Persian RTL works.
+- Make sure English LTR works.
+- Make sure the three image upload areas work.
+- Make sure image previews work.
+- Make sure Gemini receives all three images.
+- Make sure GoldAPI uses the existing secret.
+- Make sure Apify uses the existing secret and Actor ID.
+- Make sure Apify input follows the actual Actor schema.
+- Make sure API errors are handled correctly.
+- Make sure no secret appears in frontend code.
+- Make sure BUY, SELL, and NO TRADE results render correctly.
+- Make sure Entry, SL, TP1, TP2, and TP3 are displayed correctly.
+- Make sure RR validation works.
+- Make sure outdated entries are rejected.
+- Make sure the dashboard works on desktop and mobile.
+- Make sure VIP restrictions are enforced wherever real backend authentication and storage exist.
+- Make sure the admin interface does not expose credentials.
+
+Do not leave important buttons inactive.
+
+Do not use fake statistics.
+
+Do not use fake live prices.
+
+Do not create a static visual-only website.
+
+Build the actual application.
+
+Start by implementing the complete project structure, then implement the backend integrations, AI analysis workflow, and user interface.
+
+After implementation, run the available checks, fix build errors, and verify the main user workflow from image upload to final analysis report.
+
+The final result should look and feel like a premium international AI trading platform.
+
+**Project name: Aurum AI**
+
+**Primary asset: XAUUSD**
+
+**Primary AI: Gemini Vision**
+
+**Market price source: Existing GoldAPI**
+
+**Supplementary data source: Existing Apify Actor**
+
+**Primary analysis method: Multi-Timeframe Technical Analysis using 1H, 15M, and 5M charts.**

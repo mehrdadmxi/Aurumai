@@ -1,0 +1,168 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global safety net: default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isBootstrappedAdmin() {
+      return isVerifiedUser() && request.auth.token.email == 'mehrdadmahmodkhanli@gmail.com';
+    }
+
+    function isAdmin() {
+      return isBootstrappedAdmin() || (
+        isVerifiedUser() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll(['uid', 'displayName', 'email', 'tier', 'language', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'displayName', 'email', 'photoURL', 'tier', 'language', 'createdAt', 'updatedAt'])
+        && data.uid is string && data.uid == userId && isValidId(data.uid)
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 120
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 200
+        && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 500))
+        && data.tier in ['FREE', 'VIP']
+        && data.language in ['fa', 'en']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidAnalysisRecord(data, userId, analysisId) {
+      return data.keys().hasAll([
+        'id',
+        'userId',
+        'symbol',
+        'language',
+        'decision',
+        'signalStatus',
+        'analysisStatus',
+        'createdAt',
+        'serverCreatedAt',
+        'reportPayload'
+      ])
+        && data.keys().hasOnly([
+          'id',
+          'userId',
+          'symbol',
+          'language',
+          'decision',
+          'signalStatus',
+          'analysisStatus',
+          'createdAt',
+          'serverCreatedAt',
+          'summary',
+          'reportPayload'
+        ])
+        && data.id is string && data.id == analysisId && isValidId(data.id)
+        && data.userId is string && data.userId == userId && isValidId(data.userId)
+        && data.symbol == 'XAUUSD'
+        && data.language in ['fa', 'en']
+        && data.decision in ['BUY', 'SELL', 'NO TRADE']
+        && data.signalStatus is string && data.signalStatus.size() >= 1 && data.signalStatus.size() <= 32
+        && data.analysisStatus in ['completed', 'rejected', 'failed']
+        && data.createdAt is string && data.createdAt.size() >= 10 && data.createdAt.size() <= 40
+        && data.serverCreatedAt is timestamp
+        && (!('summary' in data) || (data.summary is string && data.summary.size() <= 4000))
+        && data.reportPayload is map;
+    }
+
+    match /admins/{adminId} {
+      allow get: if isValidId(adminId) && isOwner(adminId);
+      allow list, create, update, delete: if false;
+    }
+
+    match /users/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isBootstrappedAdmin();
+
+      allow create: if isValidId(userId)
+        && isVerifiedUser()
+        && isValidUserProfile(incoming(), userId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && (
+          (isOwner(userId) && incoming().tier == 'FREE') ||
+          isAdmin()
+        );
+
+      allow update: if isValidId(userId)
+        && isVerifiedUser()
+        && isValidUserProfile(incoming(), userId)
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          (
+            isOwner(userId)
+            && incoming().tier == existing().tier
+            && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'email', 'photoURL', 'language', 'updatedAt'])
+          ) ||
+          isAdmin()
+        );
+
+      allow delete: if isValidId(userId) && isAdmin();
+
+      match /analyses/{analysisId} {
+        allow get: if isValidId(userId) && isValidId(analysisId) && (isOwner(userId) || isAdmin());
+        allow list: if isSignedIn() && userId == request.auth.uid && resource.data.userId == request.auth.uid;
+
+        allow create: if isValidId(userId)
+          && isValidId(analysisId)
+          && isVerifiedUser()
+          && isOwner(userId)
+          && isValidAnalysisRecord(incoming(), userId, analysisId)
+          && incoming().userId == request.auth.uid
+          && incoming().serverCreatedAt == request.time
+          && exists(/databases/$(database)/documents/users/$(userId));
+
+        allow update: if isValidId(userId)
+          && isValidId(analysisId)
+          && isVerifiedUser()
+          && isValidAnalysisRecord(incoming(), userId, analysisId)
+          && incoming().userId == existing().userId
+          && incoming().id == existing().id
+          && incoming().serverCreatedAt == existing().serverCreatedAt
+          && (
+            (
+              isOwner(userId)
+              && existing().analysisStatus != 'rejected'
+              && incoming().diff(existing()).affectedKeys().hasOnly(['signalStatus'])
+            ) ||
+            isAdmin()
+          );
+
+        allow delete: if isValidId(userId)
+          && isValidId(analysisId)
+          && isVerifiedUser()
+          && (isOwner(userId) || isAdmin());
+      }
+    }
+  }
+}
