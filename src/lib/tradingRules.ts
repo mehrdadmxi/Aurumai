@@ -807,20 +807,6 @@ export function resolveFirebaseAuthDomain(options: {
   if (explicit) return explicit;
 
   const configured = cleanHostInput(options.configuredAuthDomain) || options.configuredAuthDomain;
-  const host = cleanHostInput(options.hostname);
-  if (!host) return configured;
-
-  if (
-    host === 'localhost' ||
-    host === '127.0.0.1' ||
-    host === '0.0.0.0' ||
-    host.endsWith('.run.app') ||
-    host.endsWith('.firebaseapp.com') ||
-    host.endsWith('.web.app')
-  ) {
-    return configured;
-  }
-
-  return host;
+  return configured;
 }
 

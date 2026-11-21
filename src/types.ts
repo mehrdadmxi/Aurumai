@@ -27,6 +27,7 @@ export type AppPage =
   | 'signals'
   | 'market'
   | 'news'
+  | 'gmail'
   | 'history'
   | 'pricing'
   | 'profile'

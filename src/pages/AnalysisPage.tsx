@@ -203,8 +203,8 @@ export function AnalysisPage({ language, onAnalysisComplete }: AnalysisPageProps
       if (contentType.includes('text/html')) {
         throw new Error(
           language === 'fa'
-            ? 'مسیر /api/analyze صفحه HTML برگرداند؛ Cloudflare Pages Functions روی این دیپلوی فعال نیستند (حتماً با wrangler pages deploy یا اتصال Git دیپلوی کنید).'
-            : '/api/analyze returned HTML instead of API stream (Cloudflare Pages Functions are not active on this deployment).'
+            ? 'مسیر /api/analyze پاسخ نامعتبر HTML برگرداند. لطفاً از فعال بودن سرور Node (server.ts) اطمینان حاصل کنید.'
+            : '/api/analyze returned HTML instead of API stream. Please verify the Node backend server (server.ts) is running.'
         );
       }
 

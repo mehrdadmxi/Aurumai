@@ -62,3 +62,41 @@ test('formatFirebaseAuthError preserves unknown error code in fallback message',
   const msg = formatFirebaseAuthError({ code: 'auth/user-disabled' }, 'en');
   assert.match(msg, /auth\/user-disabled/);
 });
+
+test('formatFirebaseAuthError formats redirect_uri_mismatch with exact /__/auth/handler URI', () => {
+  const fa = formatFirebaseAuthError(
+    new Error('Error 400: redirect_uri_mismatch'),
+    'fa',
+    'aurumai-73x.pages.dev',
+    'aurumai-73x.pages.dev'
+  );
+  assert.match(fa, /https:\/\/aurumai-73x\.pages\.dev\/__\/auth\/handler/);
+  assert.match(fa, /redirect_uri_mismatch/);
+
+  const en = formatFirebaseAuthError(
+    'redirect_uri_mismatch',
+    'en',
+    'aurumai-73x.pages.dev',
+    'aurumai-73x.pages.dev'
+  );
+  assert.match(en, /https:\/\/aurumai-73x\.pages\.dev\/__\/auth\/handler/);
+  assert.match(en, /https:\/\/aurumai-73x\.pages\.dev/);
+});
+
+test('formatFirebaseAuthError guides embedded frame errors to open in a new tab', () => {
+  const fa = formatFirebaseAuthError(
+    { code: 'auth/operation-not-supported-in-this-environment' },
+    'fa'
+  );
+  assert.match(fa, /auth\/operation-not-supported-in-this-environment/);
+  assert.match(fa, /تب جدید/);
+
+  const en = formatFirebaseAuthError(
+    { code: 'auth/operation-not-supported-in-this-environment' },
+    'en'
+  );
+  assert.match(en, /auth\/operation-not-supported-in-this-environment/);
+  assert.match(en, /new tab/i);
+});
+
+

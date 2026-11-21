@@ -25,8 +25,15 @@ const rateLimitBuckets = new Map<string, { count: number; resetAt: number }>();
 
 function throttleMiddleware(maxRequests: number, windowMs: number) {
   return (req: Request, res: Response, next: NextFunction) => {
-    const key = `${req.path}:${req.ip || 'local'}`;
     const now = Date.now();
+    if (rateLimitBuckets.size > 1000) {
+      for (const [bucketKey, entry] of rateLimitBuckets.entries()) {
+        if (now > entry.resetAt) {
+          rateLimitBuckets.delete(bucketKey);
+        }
+      }
+    }
+    const key = `${req.path}:${req.ip || 'local'}`;
     const bucket = rateLimitBuckets.get(key);
     if (!bucket || now > bucket.resetAt) {
       rateLimitBuckets.set(key, { count: 1, resetAt: now + windowMs });
@@ -319,6 +326,14 @@ async function createServer() {
     res.status(errObj.status || 500).json({
       error: errObj.message || 'Internal server error.',
       code: 'INTERNAL_ERROR',
+    });
+  });
+
+  // Return structured JSON 404 for unknown /api/* routes before SPA fallback
+  app.all('/api/*', (_req, res) => {
+    res.status(404).json({
+      error: 'API endpoint not found.',
+      code: 'API_NOT_FOUND',
     });
   });
 

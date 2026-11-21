@@ -1,9 +1,18 @@
 import { useState } from 'react';
-import { CheckCircle2, Cloud, Loader2, LogOut, ShieldCheck, UserCheck } from 'lucide-react';
+import {
+  CheckCircle2,
+  Cloud,
+  ExternalLink,
+  Loader2,
+  LogOut,
+  ShieldCheck,
+  UserCheck,
+} from 'lucide-react';
 import type { AppUser, Language, SubscriptionTier } from '../types.ts';
 import { getT } from '../i18n/translations.ts';
 import {
   type FirebaseUser,
+  resolvedFirebaseAuthDomain,
   signInWithGoogle,
   signInWithGoogleRedirect,
   signOutFirebase,
@@ -65,6 +74,16 @@ export function ProfilePage({
   const [error, setError] = useState<string | null>(null);
 
   const visibleError = error || authError || null;
+  const isEmbeddedFrame =
+    typeof window !== 'undefined' &&
+    (() => {
+      try {
+        return window.self !== window.top;
+      } catch {
+        return true;
+      }
+    })();
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : '/';
 
   const handleGoogleLogin = async () => {
     setError(null);
@@ -77,7 +96,7 @@ export function ProfilePage({
       }
     } catch (err) {
       const hostname = typeof window !== 'undefined' ? window.location.hostname : undefined;
-      setError(formatFirebaseAuthError(err, language, hostname));
+      setError(formatFirebaseAuthError(err, language, hostname, resolvedFirebaseAuthDomain));
     } finally {
       setSigningIn(false);
     }
@@ -91,7 +110,7 @@ export function ProfilePage({
       await signInWithGoogleRedirect();
     } catch (err) {
       const hostname = typeof window !== 'undefined' ? window.location.hostname : undefined;
-      setError(formatFirebaseAuthError(err, language, hostname));
+      setError(formatFirebaseAuthError(err, language, hostname, resolvedFirebaseAuthDomain));
       setRedirecting(false);
     }
   };
@@ -208,6 +227,16 @@ export function ProfilePage({
               <span>{t.logoutBtn}</span>
             </button>
           </div>
+
+          {visibleError && (
+            <p
+              role="alert"
+              className="text-xs text-amber-200 bg-amber-950/35 border border-amber-500/30 rounded-lg px-3.5 py-2.5 leading-relaxed"
+            >
+              {visibleError}
+            </p>
+          )}
+
           <div className="flex items-center gap-2 text-xs text-emerald-300 pt-3 border-t border-white/10">
             <Cloud className="w-3.5 h-3.5 shrink-0" />
             <span>{t.cloudSyncLabel}</span>
@@ -221,12 +250,25 @@ export function ProfilePage({
           </div>
 
           {visibleError && (
-            <p
+            <div
               role="alert"
-              className="text-xs text-rose-300 bg-rose-950/35 border border-rose-500/30 rounded-lg px-3.5 py-2.5 leading-relaxed"
+              className="text-xs text-rose-300 bg-rose-950/35 border border-rose-500/30 rounded-lg px-3.5 py-2.5 leading-relaxed space-y-2"
             >
-              {visibleError}
-            </p>
+              <p>{visibleError}</p>
+              <a
+                href={currentUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-[#F3E5AB] underline font-medium"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>
+                  {language === 'fa'
+                    ? 'باز کردن صفحه در تب جدید برای ورود گوگل'
+                    : 'Open app in a new tab for Google Sign-In'}
+                </span>
+              </a>
+            </div>
           )}
 
           <div className="flex flex-wrap items-center gap-3">
@@ -244,15 +286,31 @@ export function ProfilePage({
               <span>{signingIn ? t.signingInBtn : t.googleSignInBtn}</span>
             </button>
 
-            <button
-              type="button"
-              onClick={handleGoogleRedirectLogin}
-              disabled={signingIn || redirecting}
-              className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-medium border border-[#D4AF37]/30 text-[#F3E5AB] hover:bg-[#D4AF37]/10 transition-colors disabled:opacity-60 cursor-pointer"
-            >
-              {redirecting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              <span>{redirecting ? t.redirectingBtn : t.googleRedirectBtn}</span>
-            </button>
+            {isEmbeddedFrame ? (
+              <a
+                href={currentUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-medium border border-[#D4AF37]/30 text-[#F3E5AB] hover:bg-[#D4AF37]/10 transition-colors"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>
+                  {language === 'fa'
+                    ? 'باز کردن در تب جدید (در صورت مسدود شدن Popup)'
+                    : 'Open in New Tab (if Popup is blocked)'}
+                </span>
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={handleGoogleRedirectLogin}
+                disabled={signingIn || redirecting}
+                className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-medium border border-[#D4AF37]/30 text-[#F3E5AB] hover:bg-[#D4AF37]/10 transition-colors disabled:opacity-60 cursor-pointer"
+              >
+                {redirecting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                <span>{redirecting ? t.redirectingBtn : t.googleRedirectBtn}</span>
+              </button>
+            )}
           </div>
         </section>
       )}

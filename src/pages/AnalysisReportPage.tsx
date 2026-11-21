@@ -6,6 +6,7 @@ import {
   Crosshair,
   FileDown,
   Flag,
+  Mail,
   PlusCircle,
   Scale,
   ShieldAlert,
@@ -22,12 +23,14 @@ interface AnalysisReportPageProps {
   language: Language;
   report: AnalysisReport | null;
   onNewAnalysis: () => void;
+  onSendViaGmail?: (report: AnalysisReport) => void;
 }
 
 export function AnalysisReportPage({
   language,
   report,
   onNewAnalysis,
+  onSendViaGmail,
 }: AnalysisReportPageProps) {
   const t = getT(language).report;
   const [copied, setCopied] = useState(false);
@@ -186,6 +189,16 @@ export function AnalysisReportPage({
             <FileDown className="w-3.5 h-3.5" />
             <span>{t.pdfBtn}</span>
           </button>
+          {onSendViaGmail && (
+            <button
+              type="button"
+              onClick={() => onSendViaGmail(report)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium border border-[#D4AF37]/30 text-[#F3E5AB] hover:bg-[#D4AF37]/10 transition-colors"
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span>{t.sendGmailBtn}</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={onNewAnalysis}

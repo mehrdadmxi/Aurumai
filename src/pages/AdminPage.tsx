@@ -140,8 +140,8 @@ export function AdminPage({ language, onSubscriptionChanged }: AdminPageProps) {
       if (!ct.includes('application/json')) {
         setAuthError(
           language === 'fa'
-            ? 'مسیر /api/admin/login پاسخ JSON نداد. لطفاً مطمئن شوید Cloudflare Pages Functions فعال هستند.'
-            : '/api/admin/login did not return JSON. Verify Cloudflare Pages Functions are active.'
+            ? 'مسیر /api/admin/login پاسخ JSON نداد. لطفاً از فعال بودن سرور Node (server.ts) مطمئن شوید.'
+            : '/api/admin/login did not return JSON. Verify the Node backend server (server.ts) is running.'
         );
         return;
       }

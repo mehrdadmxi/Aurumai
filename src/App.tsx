@@ -14,13 +14,17 @@ import {
   deleteAnalysisFromFirestore,
   ensureUserProfile,
   type FirebaseUser,
+  getGmailAccessToken,
+  resolvedFirebaseAuthDomain,
   resolvePendingGoogleRedirect,
   saveAnalysisToFirestore,
   subscribeAuthState,
+  subscribeGmailAccessToken,
   subscribeUserAnalyses,
   updateUserLanguagePreference,
 } from './lib/firebase.ts';
 import { formatFirebaseAuthError } from './lib/firebaseAuthError.ts';
+import { formatReportAsText } from './lib/reportFormatter.ts';
 import {
   deleteReportFromLocalHistory,
   getClientId,
@@ -37,6 +41,7 @@ import { AnalysisReportPage } from './pages/AnalysisReportPage.tsx';
 import { SignalsPage } from './pages/SignalsPage.tsx';
 import { MarketPage } from './pages/MarketPage.tsx';
 import { NewsPage } from './pages/NewsPage.tsx';
+import { GmailPage, type GmailComposeDraftPrefill } from './pages/GmailPage.tsx';
 import { HistoryPage } from './pages/HistoryPage.tsx';
 import { PricingPage } from './pages/PricingPage.tsx';
 import { ProfilePage } from './pages/ProfilePage.tsx';
@@ -61,6 +66,8 @@ export default function App() {
   const [user, setUser] = useState<AppUser | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [gmailToken, setGmailToken] = useState<string | null>(() => getGmailAccessToken());
+  const [gmailPrefill, setGmailPrefill] = useState<GmailComposeDraftPrefill | null>(null);
 
   const [tier, setTier] = useState<SubscriptionTier>('FREE');
   const [usedToday, setUsedToday] = useState(0);
@@ -87,6 +94,8 @@ export default function App() {
     saveLanguage(language);
   }, [language]);
 
+  const [cloudProfileSynced, setCloudProfileSynced] = useState(false);
+
   const syncFirebaseUser = useCallback(async (fbUser: FirebaseUser): Promise<AppUser> => {
     const existingSync = syncInFlightRef.current;
     if (existingSync && existingSync.uid === fbUser.uid) {
@@ -97,6 +106,7 @@ export default function App() {
       .then((appUser) => {
         if (mountedRef.current) {
           setUser(appUser);
+          setCloudProfileSynced(true);
           setAuthError(null);
           setAuthReady(true);
         }
@@ -104,20 +114,20 @@ export default function App() {
       })
       .catch((err) => {
         const hostname = typeof window !== 'undefined' ? window.location.hostname : undefined;
-        const formatted = formatFirebaseAuthError(err, languageRef.current, hostname);
-        const raw = err instanceof Error ? err.message.toLowerCase() : String(err || '').toLowerCase();
-        const isTransientOffline =
-          raw.includes('unavailable') || raw.includes('the client is offline');
+        const formatted = formatFirebaseAuthError(
+          err,
+          languageRef.current,
+          hostname,
+          resolvedFirebaseAuthDomain
+        );
+        const fallbackUser = buildFallbackAppUser(fbUser, languageRef.current);
         if (mountedRef.current) {
+          setUser(fallbackUser);
+          setCloudProfileSynced(false);
           setAuthError(formatted);
           setAuthReady(true);
-          if (isTransientOffline) {
-            const fallbackUser = buildFallbackAppUser(fbUser, languageRef.current);
-            setUser(fallbackUser);
-            return fallbackUser;
-          }
         }
-        throw err;
+        return fallbackUser;
       })
       .finally(() => {
         if (syncInFlightRef.current?.promise === promise) {
@@ -141,7 +151,14 @@ export default function App() {
         });
       } else if (res.error) {
         const hostname = typeof window !== 'undefined' ? window.location.hostname : undefined;
-        setAuthError(formatFirebaseAuthError(res.error, languageRef.current, hostname));
+        setAuthError(
+          formatFirebaseAuthError(
+            res.error,
+            languageRef.current,
+            hostname,
+            resolvedFirebaseAuthDomain
+          )
+        );
       }
     });
 
@@ -149,6 +166,7 @@ export default function App() {
       if (!fbUser) {
         if (!cancelled) {
           setUser(null);
+          setCloudProfileSynced(false);
           setAuthReady(true);
           const local = loadLocalAnalysisHistory();
           setHistory(local);
@@ -168,9 +186,17 @@ export default function App() {
     };
   }, [syncFirebaseUser]);
 
-  // Attach Cloud Firestore real-time analyses listener ONLY after auth is ready & signed in
+  // Keep in-memory Gmail OAuth access token synchronized with Firebase auth lifecycle
   useEffect(() => {
-    if (!authReady || !user?.uid) return;
+    setGmailToken(getGmailAccessToken());
+    return subscribeGmailAccessToken((nextToken) => {
+      setGmailToken(nextToken);
+    });
+  }, []);
+
+  // Attach Cloud Firestore real-time analyses listener ONLY after auth & profile sync succeed
+  useEffect(() => {
+    if (!authReady || !user?.uid || !cloudProfileSynced) return;
     const unsubscribe = subscribeUserAnalyses(
       user.uid,
       (cloudReports) => {
@@ -187,7 +213,7 @@ export default function App() {
       }
     );
     return () => unsubscribe();
-  }, [authReady, user?.uid]);
+  }, [authReady, user?.uid, cloudProfileSynced]);
 
   const fetchGold = useCallback(async (forceRefresh = false) => {
     setMarketLoading(true);
@@ -222,8 +248,8 @@ export default function App() {
             status: 'error',
             error:
               languageRef.current === 'fa'
-                ? 'پاسخ API دریافت نشد (سرور Cloudflare Functions فعال نیست یا فقط پوشه dist آپلود شده است).'
-                : 'API endpoint returned HTML instead of JSON (Cloudflare Pages Functions are not active).',
+                ? 'پاسخ API قیمت طلا دریافت نشد. لطفاً وضعیت سرور برنامه را بررسی کنید.'
+                : 'Gold market API endpoint returned HTML instead of JSON. Please check server status.',
             disclaimer:
               'GoldAPI spot price is a reference market price and not the exact executable price of every broker.',
           }
@@ -267,8 +293,8 @@ export default function App() {
             lastFetchedAt: null,
             error:
               lang === 'fa'
-                ? 'سرویس /api/news پاسخ HTML برگرداند (Cloudflare Functions فعال نیست).'
-                : '/api/news returned HTML instead of JSON (Cloudflare Pages Functions not active).',
+                ? 'سرویس /api/news پاسخ نامعتبر برگرداند. لطفاً وضعیت سرور بک‌اند را بررسی کنید.'
+                : '/api/news returned HTML instead of JSON. Please verify the Node backend server is running.',
             items: [],
           });
         }
@@ -440,6 +466,17 @@ export default function App() {
           language={language}
           report={selectedReport}
           onNewAnalysis={() => setActivePage('analysis')}
+          onSendViaGmail={(rep) => {
+            setGmailPrefill({
+              to: user?.email || '',
+              subject:
+                language === 'fa'
+                  ? `گزارش تحلیل طلا XAUUSD — تصمیم: ${rep.decision}`
+                  : `Aurum AI XAUUSD Report — Decision: ${rep.decision}`,
+              bodyText: formatReportAsText(rep),
+            });
+            setActivePage('gmail');
+          }}
         />
       )}
 
@@ -471,6 +508,18 @@ export default function App() {
           news={news}
           loading={newsLoading}
           onRefresh={() => fetchNews(true, language)}
+        />
+      )}
+
+      {activePage === 'gmail' && (
+        <GmailPage
+          language={language}
+          user={user}
+          gmailToken={gmailToken}
+          reports={history}
+          prefillCompose={gmailPrefill}
+          onClearPrefill={() => setGmailPrefill(null)}
+          onGoogleConnected={(token) => setGmailToken(token)}
         />
       )}
 

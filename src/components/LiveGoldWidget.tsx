@@ -21,7 +21,11 @@ export function LiveGoldWidget({
   const isUp = (market?.change ?? market?.changePercent ?? 0) >= 0;
 
   const statusLabel = !market
-    ? t.unavailable
+    ? loading
+      ? language === 'fa'
+        ? 'در حال دریافت قیمت...'
+        : 'Fetching quote...'
+      : t.unavailable
     : market.status === 'connected'
       ? market.isStale
         ? t.stale
@@ -33,7 +37,9 @@ export function LiveGoldWidget({
         : t.error;
 
   const statusIcon =
-    market?.status === 'connected' && !market.isStale ? (
+    !market && loading ? (
+      <RefreshCw className="w-3.5 h-3.5 text-[#D4AF37] animate-spin shrink-0" />
+    ) : market?.status === 'connected' && !market.isStale ? (
       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
     ) : market?.status === 'disconnected' ? (
       <WifiOff className="w-3.5 h-3.5 text-[#9A9891] shrink-0" />

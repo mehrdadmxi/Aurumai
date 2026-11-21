@@ -25,7 +25,6 @@ import {
   getFirestore,
   limit,
   onSnapshot,
-  orderBy,
   query,
   serverTimestamp,
   setDoc,
@@ -72,12 +71,65 @@ function initPersistentAuth(): Auth {
 export const auth = initPersistentAuth();
 auth.useDeviceLanguage();
 
+export const GMAIL_SCOPES: string[] = [
+  'https://mail.google.com/',
+  'https://www.googleapis.com/auth/gmail.addons.current.action.compose',
+  'https://www.googleapis.com/auth/gmail.addons.current.message.action',
+  'https://www.googleapis.com/auth/gmail.addons.current.message.metadata',
+  'https://www.googleapis.com/auth/gmail.addons.current.message.readonly',
+  'https://www.googleapis.com/auth/gmail.compose',
+  'https://www.googleapis.com/auth/gmail.insert',
+  'https://www.googleapis.com/auth/gmail.labels',
+  'https://www.googleapis.com/auth/gmail.metadata',
+  'https://www.googleapis.com/auth/gmail.modify',
+  'https://www.googleapis.com/auth/gmail.readonly',
+  'https://www.googleapis.com/auth/gmail.send',
+  'https://www.googleapis.com/auth/gmail.settings.basic',
+  'https://www.googleapis.com/auth/gmail.settings.sharing',
+];
+
+// Strictly in-memory OAuth access token cache (never stored in localStorage or sessionStorage).
+let cachedAccessToken: string | null = null;
+const tokenListeners = new Set<(token: string | null) => void>();
+
+function setCachedAccessToken(token: string | null): void {
+  cachedAccessToken = token;
+  for (const listener of tokenListeners) {
+    listener(token);
+  }
+}
+
+export function getGmailAccessToken(): string | null {
+  return cachedAccessToken;
+}
+
+export function clearGmailAccessToken(): void {
+  setCachedAccessToken(null);
+}
+
+export function subscribeGmailAccessToken(
+  listener: (token: string | null) => void
+): () => void {
+  tokenListeners.add(listener);
+  return () => {
+    tokenListeners.delete(listener);
+  };
+}
+
 // Proactively initialize browserPopupRedirectResolver and preserve any redirect result/error
 // returned after signInWithRedirect on strict/mobile browsers.
 const pendingRedirectPromise: Promise<{ user: FirebaseUser | null; error: unknown | null }> =
   typeof window !== 'undefined'
     ? getRedirectResult(auth, browserPopupRedirectResolver)
-        .then((res) => ({ user: res?.user ?? null, error: null }))
+        .then((res) => {
+          if (res) {
+            const cred = GoogleAuthProvider.credentialFromResult(res);
+            if (cred?.accessToken) {
+              setCachedAccessToken(cred.accessToken);
+            }
+          }
+          return { user: res?.user ?? null, error: null };
+        })
         .catch((err) => ({ user: null, error: err }))
     : Promise.resolve({ user: null, error: null });
 
@@ -180,25 +232,51 @@ function stripUndefinedDeep<T>(value: T): T {
   return value;
 }
 
-function createGoogleProvider(): GoogleAuthProvider {
+function createGoogleProvider(includeGmailScopes = false, loginHint?: string | null): GoogleAuthProvider {
   const provider = new GoogleAuthProvider();
   provider.addScope('profile');
   provider.addScope('email');
-  provider.setCustomParameters({ prompt: 'select_account' });
+  if (includeGmailScopes) {
+    for (const scope of GMAIL_SCOPES) {
+      provider.addScope(scope);
+    }
+  }
+  const params: Record<string, string> = { prompt: 'select_account' };
+  if (loginHint && loginHint.trim()) {
+    params.login_hint = loginHint.trim();
+  }
+  provider.setCustomParameters(params);
   return provider;
 }
 
 export async function signInWithGoogle(): Promise<FirebaseUser> {
   const result = await signInWithPopup(
     auth,
-    createGoogleProvider(),
+    createGoogleProvider(false),
     browserPopupRedirectResolver
   );
   return result.user;
 }
 
+export async function connectGmailWithGoogle(): Promise<{
+  user: FirebaseUser;
+  accessToken: string;
+}> {
+  const result = await signInWithPopup(
+    auth,
+    createGoogleProvider(true, auth.currentUser?.email),
+    browserPopupRedirectResolver
+  );
+  const credential = GoogleAuthProvider.credentialFromResult(result);
+  if (!credential?.accessToken) {
+    throw new Error('Failed to obtain Google OAuth access token for Gmail.');
+  }
+  setCachedAccessToken(credential.accessToken);
+  return { user: result.user, accessToken: credential.accessToken };
+}
+
 export async function signInWithGoogleRedirect(): Promise<void> {
-  await signInWithRedirect(auth, createGoogleProvider(), browserPopupRedirectResolver);
+  await signInWithRedirect(auth, createGoogleProvider(false), browserPopupRedirectResolver);
 }
 
 export function buildFallbackAppUser(
@@ -228,13 +306,19 @@ export function buildFallbackAppUser(
 }
 
 export async function signOutFirebase(): Promise<void> {
+  setCachedAccessToken(null);
   await signOut(auth);
 }
 
 export function subscribeAuthState(
   callback: (firebaseUser: FirebaseUser | null) => void
 ): Unsubscribe {
-  return onAuthStateChanged(auth, callback);
+  return onAuthStateChanged(auth, (fbUser) => {
+    if (!fbUser) {
+      setCachedAccessToken(null);
+    }
+    callback(fbUser);
+  });
 }
 
 export async function ensureUserProfile(
@@ -258,11 +342,13 @@ export async function ensureUserProfile(
   let existingLang: Language = preferredLanguage;
 
   let docExists = false;
+  let storedData: Record<string, unknown> | null = null;
   try {
     const snap = await getDoc(ref);
     if (snap.exists()) {
       docExists = true;
       const data = snap.data() as Record<string, unknown>;
+      storedData = data;
       if (data.tier === 'VIP' || data.tier === 'FREE') {
         existingTier = data.tier;
       }
@@ -294,17 +380,26 @@ export async function ensureUserProfile(
       handleFirestoreError(error, OperationType.CREATE, userPath);
     }
   } else {
-    try {
-      const updatePayload: Record<string, unknown> = {
-        displayName,
-        email,
-        language: existingLang,
-        updatedAt: serverTimestamp(),
-      };
-      if (photoURL) updatePayload.photoURL = photoURL;
-      await updateDoc(ref, updatePayload);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, userPath);
+    const needsProfileUpdate =
+      !storedData ||
+      storedData.displayName !== displayName ||
+      storedData.email !== email ||
+      storedData.language !== existingLang ||
+      (Boolean(photoURL) && storedData.photoURL !== photoURL);
+
+    if (needsProfileUpdate) {
+      try {
+        const updatePayload: Record<string, unknown> = {
+          displayName,
+          email,
+          language: existingLang,
+          updatedAt: serverTimestamp(),
+        };
+        if (photoURL) updatePayload.photoURL = photoURL;
+        await updateDoc(ref, updatePayload);
+      } catch (error) {
+        handleFirestoreError(error, OperationType.UPDATE, userPath);
+      }
     }
   }
 
@@ -387,8 +482,7 @@ export function subscribeUserAnalyses(
   const q = query(
     collection(db, 'users', uid, 'analyses'),
     where('userId', '==', uid),
-    orderBy('serverCreatedAt', 'desc'),
-    limit(50)
+    limit(100)
   );
 
   return onSnapshot(
@@ -401,7 +495,8 @@ export function subscribeUserAnalyses(
           items.push(data.reportPayload);
         }
       }
-      onData(items);
+      items.sort((a, b) => (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0));
+      onData(items.slice(0, 50));
     },
     (error) => {
       try {

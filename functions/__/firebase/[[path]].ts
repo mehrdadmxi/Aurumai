@@ -14,11 +14,21 @@ const HOP_BY_HOP_RES_HEADERS = new Set([
 
 export async function onRequest(context: PagesProxyContext): Promise<Response> {
   const { request, env } = context;
-  const upstreamHost =
-    (env.FIREBASE_AUTH_UPSTREAM || firebaseConfig.authDomain || '').trim() ||
-    'totemic-booking-rvc14.firebaseapp.com';
-
   const incomingUrl = new URL(request.url);
+  const projectHost = firebaseConfig.projectId
+    ? `${firebaseConfig.projectId}.firebaseapp.com`
+    : 'totemic-booking-rvc14.firebaseapp.com';
+  const configuredAuth = (firebaseConfig.authDomain || '').trim();
+  const safeConfigured =
+    configuredAuth.endsWith('.firebaseapp.com') || configuredAuth.endsWith('.web.app')
+      ? configuredAuth
+      : projectHost;
+  const candidateUpstream = (env.FIREBASE_AUTH_UPSTREAM || safeConfigured).trim() || projectHost;
+  const upstreamHost =
+    candidateUpstream.toLowerCase() === incomingUrl.hostname.toLowerCase()
+      ? projectHost
+      : candidateUpstream;
+
   const upstreamUrl = new URL(`${incomingUrl.pathname}${incomingUrl.search}`, `https://${upstreamHost}`);
 
   const upstreamRes = await fetch(upstreamUrl.toString(), {

@@ -367,13 +367,13 @@ test('parseGoogleNewsRss parses RSS items, XML entities, and publisher cleanly',
   assert.equal(items[0].publishedAt, '2026-11-20T08:35:48.000Z');
 });
 
-test('resolveFirebaseAuthDomain matches Cloudflare Pages URL while preserving localhost and preview domains', () => {
+test('resolveFirebaseAuthDomain preserves configured Firebase authDomain across AI Studio, localhost, and custom domains', () => {
   assert.equal(
     resolveFirebaseAuthDomain({
-      hostname: 'aurumai-73x.pages.dev',
+      hostname: 'aurumgold.ir',
       configuredAuthDomain: 'totemic-booking-rvc14.firebaseapp.com',
     }),
-    'aurumai-73x.pages.dev'
+    'totemic-booking-rvc14.firebaseapp.com'
   );
   assert.equal(
     resolveFirebaseAuthDomain({
@@ -391,7 +391,7 @@ test('resolveFirebaseAuthDomain matches Cloudflare Pages URL while preserving lo
   );
   assert.equal(
     resolveFirebaseAuthDomain({
-      hostname: 'localhost',
+      hostname: 'aurumgold.ir',
       configuredAuthDomain: 'totemic-booking-rvc14.firebaseapp.com',
       envAuthDomain: 'https://custom.aurum.app/',
     }),

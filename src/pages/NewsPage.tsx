@@ -32,7 +32,14 @@ export function NewsPage({ language, news, loading, onRefresh }: NewsPageProps) 
         </button>
       </div>
 
-      {!news || !news.providerConfigured || news.items.length === 0 ? (
+      {loading && (!news || news.items.length === 0) ? (
+        <div className="aurum-glass rounded-xl p-10 text-center space-y-3">
+          <RefreshCw className="w-7 h-7 text-[#D4AF37] mx-auto animate-spin" />
+          <p className="text-sm text-[#9A9891]">
+            {isFa ? 'در حال دریافت و ترجمه اخبار اقتصادی...' : 'Loading live macroeconomic news...'}
+          </p>
+        </div>
+      ) : !news || !news.providerConfigured || news.items.length === 0 ? (
         <div className="aurum-glass rounded-xl p-10 text-center space-y-3">
           <Newspaper className="w-8 h-8 text-[#D4AF37] mx-auto opacity-80" />
           <h2 className="text-lg font-semibold text-[#F5F2EB]">{t.unavailableTitle}</h2>

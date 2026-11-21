@@ -624,8 +624,19 @@ test('/__/auth/* reverse proxy forwards requests to Firebase Hosting with manual
     );
     assert.equal(capturedRedirect, 'manual');
     assert.equal(res.headers.get('Cross-Origin-Opener-Policy'), 'same-origin-allow-popups');
+
+    const loopGuarded = await onAuthProxyRequest({
+      request: new Request('https://aurumai-73x.pages.dev/__/auth/handler'),
+      env: { FIREBASE_AUTH_UPSTREAM: 'aurumai-73x.pages.dev' },
+    });
+    assert.equal(loopGuarded.status, 200);
+    assert.equal(
+      capturedUrl,
+      'https://totemic-booking-rvc14.firebaseapp.com/__/auth/handler'
+    );
   } finally {
     globalThis.fetch = originalFetch;
   }
 });
+
 
